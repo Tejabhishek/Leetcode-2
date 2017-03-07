@@ -35,6 +35,16 @@ public class NumMatrix {
         if(m == 0 || n == 0) return 0;
 
     }
+
+    public int sum(int row, int col) {
+        int sum = 0;
+        for(int i = row; i > 0; i-= i & (-i)) {
+            for(int j = col; j > 0; j -= j & (-j)) {
+                sum += tree[i][j];
+            }
+        }
+        return sum;
+    }
 }
 
 /**

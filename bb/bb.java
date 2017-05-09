@@ -1346,8 +1346,703 @@ public class Solution{
 }
 
 
+30. Copy the linkedlist with random pointer
+public class Solution {
+    public RandomListNode copyRandomList(RandomListNode head) {
+        if(head == null) return null;
+        Map<RandomListNode, RandomListNode> map = new HashMap<RandomListNode, RandomListNode>();
+
+        // loop 1. Copy all the nodes
+        RandomListNode node = head;
+        while(node != null) {
+            map.put(node, new RandomListNode(node.label));
+            node = node.next;
+        }
+
+        // loop 2. assign next and random pointers
+        node = head;
+        while(node != null) {
+            map.get(node).next = map.get(node.next);
+            map.get(node).random = map.get(node.random);
+        }
+        return map.get(head);
+    }
+}
+with O(1) space solution:
+
+public RandomListNode copyRandomList(RandomListNode head) {
+    RandomListNode iter = head, next;
+    // First round: make copy of each node,
+    // and link them together side-by-side in a single list
+    while(iter != null) {
+        next = iter.next;
+        RandomListNode copy = new RandomListNode(iter.label);
+        iter.next = copy;
+        copy.next = next;
+        iter = next;
+    }
+    // Second round: assign random pointers for the copy nodes.
+    iter = head;
+    while(iter != null) {
+        if(iter.random != null) {
+            iter.next.random = iter.random.next;
+        }
+        iter = iter.next.next;
+    }
+    // Third round: restore the original list, and extract the copy list.
+    iter = head;
+    RandomListNode dummy = new RandomListNode(0);
+    RandomListNode copy, copyIter = dummy;
+    while(iter != null) {
+        next = iter.next.next;
+        // extract the copy
+        copy = iter.next;
+        copyIter.next = copy;
+        copyIter = copy;
+
+        // restore the original list
+        iter.next = next;
+        iter = next;
+    }
+    return dummy.next;
+}
 
 
+31. Given a 2D Matrix, m * n size, Given a start point, and K steps. Return Maximum Path Sum
+public int MaximumPathSum(int[][] board, int x, int y, int k) {
+    int res = 0;
+    return res;
+}
+
+private void helper(int[][] board, int x, int y, int k, int res, int path) {
+
+}
+
+32. phone combination + word break
+
+33.trapping water
+
+34. Race Condition in Distributed System
+
+35. predict the winner
+
+36, given 6-digit number, same sum for left 3 digit and right 3 digit, find all the combinations
+
+37. Given a String, and int k, reverse the first k characters every 2k characters, and the rest remains the same;
+    if the rest of characters is smaller than k, reverse them.
+
+
+38. Path Sum II
+/**
+ * Given a binary tree and a sum, find all root-to-leaf paths where each path's sum equals the given sum.
+ * For example:
+ * Given the below binary tree and sum = 22,
+ *            5
+ *           / \
+ *          4   8
+ *         /   / \
+ *        11  13  4
+ *       /  \    / \
+ *      7    2  5   1
+ * return
+ * [
+ *    [5,4,11,2],
+ *     [5,8,4,5]
+ *  ]
+ */
+ 
+ public class Solution {
+    public ArrayList<ArrayList<Integer>> pathSum(TreeNode root, int sum) {
+        ArrayList<ArrayList<Integer>> res = new ArrayList<ArrayList<Integer>>();
+        if(root != null){
+            ArrayList<Integer> path = new ArrayList<Integer>();
+            pathSumHelper(root, sum, res, path);
+        }
+        return res;
+    }
+    
+    public void pathSumHelper(TreeNode root, int sum, ArrayList<ArrayList<Integer>> res, ArrayList<Integer> path){
+        if(root == null)
+            return;
+        if(root.left == null && root.right == null && root.val == sum){
+            // path found.
+            ArrayList<Integer> apath = new ArrayList<Integer>(path);
+            apath.add(root.val);
+            res.add(apath);
+        }else{
+            // walk into next level
+            path.add(root.val);
+            if(root.left != null)
+                pathSumHelper(root.left, sum - root.val, res, path);
+            if(root.right != null)
+                pathSumHelper(root.right, sum - root.val, res, path);
+            // recover the global variable. backtracking. 
+            path.remove(path.size() - 1);
+        }
+    }
+}
+
+39. Find Peak or valley element
+public static int FindValleyOrPeak(int[] nums) {
+    int start = 0, end = nums.length - 1;
+    boolean isUp = (nums[0] + 1 == nums[1]);
+    while(start + 1 < end) {
+        int mid = start + (end - start) / 2;
+        if(isUp) {
+            if(nums[mid] < nums[mid + 1])  start = mid;
+            else end = mid;
+        } else {
+            if(nums[mid] > nums[mid + 1]) start = mid;
+            else end = mid;
+        }
+    }
+    if(isUp) return nums[start] > nums[end] ? start : end;
+    else return nums[start] < nums[end] ? start : end;
+}
+
+40. Reorder List
+public static void reorderList(ListNode head) {
+    if (head == null || head.next == null)
+        return;
+    ListNode fast = head;
+    ListNode late = head;
+    while (fast.next != null && fast.next.next != null) {
+        fast = fast.next.next;
+        late = late.next;
+    }
+    ListNode ret = new ListNode(0);
+    ListNode cur = ret;
+    ListNode leftHalf = head;
+    ListNode rightHalf;
+    if (fast.next != null) {
+        rightHalf = reverseList(late.next);
+        late.next = null;
+    } else {
+        rightHalf = reverseList(late);
+        ListNode tmp = head;
+        while (tmp.next != late) {
+            tmp = tmp.next;
+        }
+        tmp.next = null;
+    }
+    leftHalf = head;
+    while (leftHalf != null && rightHalf != null) {
+        cur.next = leftHalf;
+        leftHalf = leftHalf.next;
+        cur = cur.next;
+        cur.next = rightHalf;
+        rightHalf = rightHalf.next;
+        cur = cur.next;
+    }
+    if (leftHalf != null) {
+        cur.next = leftHalf;
+    } else if (rightHalf != null) {
+        cur.next = rightHalf;
+    }
+    head = ret.next;
+}
+
+private static ListNode reverseLinkedList(ListNode head) {
+    ListNode curr = null, next = null;
+    while (head != null) {
+        next = head.next;
+        head.next = curr;
+        curr = head;
+        head = next;
+    }
+    return curr;
+}  
+
+41. Josephus problem
+
+42. LCA 
+public class LCA {
+    public TreeNode BT_LCA(TreeNode root, TreeNode a, TreeNode b) {
+        TreeNode left, right;
+        if (root == null)
+            return root;
+        if (root == a || root == b)
+            return root;
+        
+        // divide
+        left = BT_LCA(root.left, a, b);
+        right = BT_LCA(root.right, a, b);
+        
+        // conquer
+        if (left != null && right != null)
+            return root;// nodes are each on a separate branch
+        else
+            return (left != null ? left : right);
+        // either one node is on one branch,
+        // or none was found in any of the branches
+        
+    }
+
+    public TreeNode BST_LCA(TreeNode root, TreeNode a, TreeNode b) {
+        if (root == null)
+            return root;
+        if (root == a || root == b)
+            return root;
+        if (Math.max(a.val, b.val) < root.val) // a.val < root.val && b.val < root.val, on the left subtree
+            return BST_LCA(root.left, a, b);
+        else if (Math.min(a.val, b.val) > root.val) // a.val > root.val && b.val > root.val, on the right subtree
+            return BST_LCA(root.right, a, b);
+        else
+            return root;
+    }
+    
+    // first common ancestor with parent pointer. What if the parent pointer is not available
+    
+    public TreeNode getLCAWithParent(TreeNode a, TreeNode b) {
+        int la = 0, lb = 0;
+        TreeNode curr = a; 
+        while(curr != null) {
+            curr = curr.parent;
+            la++;
+        }
+        curr = b;
+        while(curr != null) {
+            curr = curr.parent;
+            lb++;
+        }
+        if(la < lb) {
+            int delta = lb - la;
+            for(int i = 0; i < delta; i++) {
+                a = a.parent;
+            }
+        } else if(lb < la) {
+            int delta = la - lb;
+            for(int i = 0; i < delta; i++) {
+                b = b.parent;
+            }
+        }
+        while(a != null && b != null) {
+            if(a == b) return a;
+            a = a.parent;
+            b = b.parent;
+        }
+        return null;
+    }
+}
+
+43. Unique Paths 
+/**
+ * A robot is located at the top-left corner of a m x n grid (marked 'Start' in the diagram below).
+ * The robot can only move either down or right at any point in time. The robot is trying to reach the bottom-right corner of the grid (marked 'Finish' in the diagram below).
+ * How many possible unique paths are there?
+ * Note: m and n will be at most 100.
+ */
+ 
+public class Solution {
+    public int uniquePaths(int m, int n) {
+        int[][] paths = new int[m][n];
+        // Initialization
+        for(int i = 0; i < m; i++){
+            paths[i][0] = 1;
+        }
+        for(int i = 0; i < n; i++){
+            paths[0][i] = 1;
+        }
+        for(int i = 1; i < m; i++){
+            for(int j = 1; j < n; j++){
+                paths[i][j] = paths[i - 1][j] + paths[i][j - 1];
+            }
+        }
+        return paths[m - 1][n - 1];
+    }
+}
+
+44. Evaluate Reverse Polish Notation
+/**
+ * Evaluate the value of an arithmetic expression in Reverse Polish Notation.
+ * Valid operators are +, -, *, /. Each operand may be an integer or another expression.
+ * Some examples:
+ *  ["2", "1", "+", "3", "*"] -> ((2 + 1) * 3) -> 9
+ *  ["4", "13", "5", "/", "+"] -> (4 + (13 / 5)) -> 6
+ */
+ 
+public class Solution {
+    public int evalRPN(String[] tokens) {
+        Stack<Integer> s = new Stack<Integer>();
+        for(String token : tokens){
+            if(token.equals("+")){
+                int op1 = s.pop();
+                int op2 = s.pop();
+                int res = op1+op2;
+                s.push(res);
+            }else if(token.equals("-")){
+                int op1 = s.pop();
+                int op2 = s.pop();
+                int res = op2-op1;
+                s.push(res);
+            }else if(token.equals("*")){
+                int op1 = s.pop();
+                int op2 = s.pop();
+                int res = op1 * op2;
+                s.push(res);
+            }else if(token.equals("/")){
+                int op1 = s.pop();
+                int op2 = s.pop();
+                int res = op2 / op1;
+                s.push(res);
+            }else{
+                s.push(Integer.parseInt(token));
+            }
+        }
+        return s.pop();
+    }
+}
+
+45. Leetcode-295 Find Median from Data Stream
+Find Median from a very large set of integer
+
+46. Valid parentheses
+public boolean isValid(String s) {
+    Stack<Character> stack = new Stack<Character>();
+    for (char c : s.toCharArray()) {
+        if (c == '(')
+            stack.push(')');
+        else if (c == '{')
+            stack.push('}');
+        else if (c == '[')
+            stack.push(']');
+        else if (stack.isEmpty() || stack.pop() != c)
+            return false;
+    }
+    return stack.isEmpty();
+}
+
+47.Multiply two integers without using multiplication operators
+int multiply(int multiplicand, int factor)
+{
+    if (factor == 0) return 0;
+
+    int product = multiplicand;
+    for (int ii = 1; ii < abs(factor); ++ii) {
+        product += multiplicand;
+    }
+
+    return factor >= 0 ? product : -product;
+}
+
+Think about how you multiply in decimal using pencil and paper:
+
+  12
+x 26
+----
+  72
+ 24
+----
+ 312
+What does multiplication look like in binary?
+
+   0111
+x  0101
+-------
+   0111
+  0000
+ 0111
+-------
+ 100011
+
+ // A method to multiply two numbers using Russian Peasant method
+public int russianPeasant(int a, int b)
+{
+    int res = 0;  // initialize result
+ 
+    // While second number doesn't become 1
+    while (b > 0)
+    {
+         // If second number becomes odd, add the first number to result
+         if (b & 1)
+             res = res + a;
+ 
+         // Double the first number and halve the second number
+         a = a << 1;
+         b = b >> 1;
+     }
+     return res;
+}
+
+48. Jump Game
+/**
+ * Given an array of non-negative integers, you are initially positioned at the first index of the array.
+ * Each element in the array represents your maximum jump length at that position.
+ * Determine if you are able to reach the last index.
+ * For example:
+ * A = [2,3,1,1,4], return true.
+ * A = [3,2,1,0,4], return false.
+ */
+ I.
+public class Solution {
+    public boolean canJump(int[] A) {
+        int maxCover = 0;
+        for(int start = 0; start <= maxCover && start < A.length; start++){
+            maxCover = Math.max(A[start] + start, maxCover);
+            if(maxCover >= A.length - 1)
+                return true;
+        }
+        return false;
+    }
+    
+    public boolean canJumpDP(int[] A) {
+      boolean[] can = new boolean[A.length];
+      // Initialization
+      can[0] = true;
+        
+      for (int i = 1; i < A.length; i++) {
+          for (int j = 0; j < i; j++) {
+              if (can[j] && j + A[j] >= i) {
+                  can[i] = true;
+                  break;
+              }
+          }
+      }
+        
+      return can[A.length - 1];
+    }
+}
+II.
+/**
+ * Given an array of non-negative integers, you are initially positioned at the first index of the array.
+ * Each element in the array represents your maximum jump length at that position.
+ * Your goal is to reach the last index in the minimum number of jumps.
+ * For example:
+ * Given array A = [2,3,1,1,4]
+ * The minimum number of jumps to reach the last index is 2. (Jump 1 step from index 0 to 1, then 3 steps to the last index.)
+ */
+// version 1: Dynamic Programming
+public class Solution {
+    public int jump(int[] A) {
+        int[] steps = new int[A.length];
+        
+        steps[0] = 0;
+        for (int i = 1; i < A.length; i++) {
+            steps[i] = Integer.MAX_VALUE;
+            for (int j = 0; j < i; j++) {
+                if (steps[j] != Integer.MAX_VALUE && j + A[j] >= i) {
+                    steps[i] = steps[j] + 1;
+                    break;
+                }
+            }
+        }
+        
+        return steps[A.length - 1];
+    }
+}
+
+
+// version 2: Greedy
+public class Solution {
+    public int jump(int[] A) {
+        if (A == null || A.length == 0) {
+            return -1;
+        }
+        int start = 0, end = 0, jumps = 0;
+        while (end < A.length - 1) {
+            jumps++;
+            int farthest = end;
+            for (int i = start; i <= end; i++) {
+                if (A[i] + i > farthest) {
+                    farthest = A[i] + i;
+                }
+            }
+            start = end + 1;
+            end = farthest;
+        }
+        return jumps;
+    }
+}
+
+49. Symmetric Tree
+public class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        if(root == null)
+            return true;
+        return isSymmetric(root.left, root.right);
+    }
+    public boolean isSymmetric(TreeNode left, TreeNode right) {
+        if(left == null && right == null) 
+            return true;
+        if(left == null || right == null) 
+            return false;
+        if(left.val != right.val) 
+            return false;
+        return isSymmetric(left.left, right.right) && isSymmetric(left.right, right.left);
+   }
+}
+
+50.LFU
+Design and implement a data structure for Least Frequently Used (LFU) cache. It should support the following operations: get and put.
+
+get(key) - Get the value (will always be positive) of the key if the key exists in the cache, otherwise return -1.
+put(key, value) - Set or insert the value if the key is not already present. When the cache reaches its capacity, it should invalidate the least frequently used item before inserting a new item. For the purpose of this problem, when there is a tie (i.e., two or more keys that have the same frequency), the least recently used key would be evicted.
+
+Follow up:
+Could you do both operations in O(1) time complexity?
+
+Example:
+
+LFUCache cache = new LFUCache( 2 /* capacity */ );
+
+cache.put(1, 1);
+cache.put(2, 2);
+cache.get(1);       // returns 1
+cache.put(3, 3);    // evicts key 2
+cache.get(2);       // returns -1 (not found)
+cache.get(3);       // returns 3.
+cache.put(4, 4);    // evicts key 1.
+cache.get(1);       // returns -1 (not found)
+cache.get(3);       // returns 3
+cache.get(4);       // returns 4
+
+Solution: 
+Two HashMaps are used, one to store <key, value> pair, another store the <key, node>.
+I use double linked list to keep the frequent of each key. In each double linked list node, keys with the same count are saved using java built in LinkedHashSet. This can keep the order.
+Every time, one key is referenced, first find the current node corresponding to the key, If the following node exist and the frequent is larger by one, add key to the keys of the following node, else create a new node and add it following the current node.
+All operations are guaranteed to be O(1).
+
+public class LFUCache {
+    private Node head = null;
+    private int cap = 0;
+    private HashMap<Integer, Integer> valueHash = null;
+    private HashMap<Integer, Node> nodeHash = null;
+    
+    public LFUCache(int capacity) {
+        this.cap = capacity;
+        valueHash = new HashMap<Integer, Integer>();
+        nodeHash = new HashMap<Integer, Node>();
+    }
+    
+    public int get(int key) {
+        if (valueHash.containsKey(key)) {
+            increaseCount(key);
+            return valueHash.get(key);
+        }
+        return -1;
+    }
+    
+    public void set(int key, int value) {
+        if ( cap == 0 ) return;
+        if (valueHash.containsKey(key)) {
+            valueHash.put(key, value);
+        } else {
+            if (valueHash.size() < cap) {
+                valueHash.put(key, value);
+            } else {
+                removeOld();
+                valueHash.put(key, value);
+            }
+            addToHead(key);
+        }
+        increaseCount(key);
+    }
+    
+    private void addToHead(int key) {
+        if (head == null) {
+            head = new Node(0);
+            head.keys.add(key);
+        } else if (head.count > 0) {
+            Node node = new Node(0);
+            node.keys.add(key);
+            node.next = head;
+            head.prev = node;
+            head = node;
+        } else {
+            head.keys.add(key);
+        }
+        nodeHash.put(key, head);      
+    }
+    
+    private void increaseCount(int key) {
+        Node node = nodeHash.get(key);
+        node.keys.remove(key);
+        
+        if (node.next == null) {
+            node.next = new Node(node.count+1);
+            node.next.prev = node;
+            node.next.keys.add(key);
+        } else if (node.next.count == node.count+1) {
+            node.next.keys.add(key);
+        } else {
+            Node tmp = new Node(node.count+1);
+            tmp.keys.add(key);
+            tmp.prev = node;
+            tmp.next = node.next;
+            node.next.prev = tmp;
+            node.next = tmp;
+        }
+
+        nodeHash.put(key, node.next);
+        if (node.keys.size() == 0) remove(node);
+    }
+    
+    private void removeOld() {
+        if (head == null) return;
+        int old = 0;
+        for (int n: head.keys) {
+            old = n;
+            break;
+        }
+        head.keys.remove(old);
+        if (head.keys.size() == 0) remove(head);
+        nodeHash.remove(old);
+        valueHash.remove(old);
+    }
+    
+    private void remove(Node node) {
+        if (node.prev == null) {
+            head = node.next;
+        } else {
+            node.prev.next = node.next;
+        } 
+        if (node.next != null) {
+            node.next.prev = node.prev;
+        }
+    }
+    
+    class Node {
+        public int count = 0;
+        public LinkedHashSet<Integer> keys = null;
+        public Node prev = null, next = null;
+        
+        public Node(int count) {
+            this.count = count;
+            keys = new LinkedHashSet<Integer>();
+            prev = next = null;
+        }
+    }
+}
+
+51. Find First Missing Positive
+/**
+ * Given an unsorted integer array, find the first missing positive integer.
+ * For example,
+ * Given [1,2,0] return 3,
+ * and [3,4,-1,1] return 2.
+ * Your algorithm should run in O(n) time and uses constant space.
+ */
+ 
+public class Solution {
+    public int firstMissingPositive(int[] A) {
+        if(A.length == 0)
+            return 1;
+        for(int i = 0; i < A.length; i++){
+            if(A[i] > 0 && A[i] - 1 < A.length && A[i] - 1 != i && A[i] != A[A[i] - 1]) {
+                int t = A[A[i] - 1];
+                A[A[i] - 1] = A[i];
+                A[i] = t;
+                i--;
+            }
+        }
+        for(int j = 0; j < A.length; j++){
+            if(A[j] - 1 != j)
+                return j + 1;
+        }
+        return A.length + 1;
+    }
+    
+}
 
 
 

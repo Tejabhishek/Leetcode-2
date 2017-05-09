@@ -746,7 +746,62 @@ public class Solution{
     }
 }
 
-?????15. Next Greater Element I && II && III
+15. Next Greater Element I && II && III
+Example 1:
+Input: nums1 = [4,1,2], nums2 = [1,3,4,2].
+Output: [-1,3,-1]
+Explanation:
+    For number 4 in the first array, you cannot find the next greater number for it in the second array, so output -1.
+    For number 1 in the first array, the next greater number for it in the second array is 3.
+    For number 2 in the first array, there is no next greater number for it in the second array, so output -1.
+Example 2:
+Input: nums1 = [2,4], nums2 = [1,2,3,4].
+Output: [3,-1]
+Explanation:
+    For number 2 in the first array, the next greater number for it in the second array is 3.
+    For number 4 in the first array, there is no next greater number for it in the second array, so output -1.
+Note:
+All elements in nums1 and nums2 are unique.
+The length of both nums1 and nums2 would not exceed 1000.
+
+I.
+用一个单调栈来存取之前的值，遇到比栈顶元素大的当前元素，pop栈顶元素与当前元素存成pair放到map里面。
+public int[] nextGreaterElement(int[] findNums, int[] nums) {
+    Map<Integer, Integer> map = new HashMap<>();
+    Stack<Integer> stack = new Stack<>();
+    for(int i : nums) {
+        while(!stack.isEmpty() && stack.peek() < i) {
+            map.put(stack.pop(), i);
+        }
+        stack.push(i);
+    }
+    for(int i = 0; i < findNums.length; i++) {
+        findNums[i] = map.getOrDefault(findNums[i], -1);
+    }
+    return findNums;
+}
+
+II. the array is a circular array
+Input: [1,2,1]
+Output: [2,-1,2]
+Explanation: The first 1's next greater number is 2; 
+The number 2 can't find next greater number;
+The second 1 next greater number needs to search circularly, which is also 2.
+public class Solution {
+    public int[] nextGreaterElements(int[] nums) {
+        int n = nums.length, next[] = new int[n];
+        Arrays.fill(next, -1);
+        Stack<Integer> stack = new Stack<>(); // index only
+        for(int i = 0; i < n * 2; i++) {
+            int num = nums[i % n];
+            while(!stack.isEmpty() && nums[stack.peek()] < num) {
+                next[stack.pop()] = num;
+            }
+            if(i < n) stack.push(i);
+        }
+        return next;
+    }
+}
 
 16. LRU
 /**
@@ -866,11 +921,10 @@ public class Solution {
     }
 }
 
-?????18. Leetcode 544: Output Contest Matches
 
-?????19. Word Break II
+?????18. Word Break II
 
-20. 2 Sum
+19. Two Sum
 I.
 public class Solution{
     public int[] twoSum(int[] numbers, int target) {
@@ -938,9 +992,9 @@ public class TwoSum {
 	}
 }
 
-21. BST second largest node
+20. BST second largest node
 
-22. Number of islands
+21. Number of islands
 public class Solution {
     public int numIslands(char[][] grid) {
         if(grid == null || grid.length == 0 || grid[0].length == 0)
@@ -1044,7 +1098,254 @@ public class Solution {
     }
 }
 
-?????23. Zigzag print a matrix:
+22. Zigzag print a matrix:
+
+23. Sqrt(x)
+public class Solution {
+    public int sqrt(int x) {
+        if(x < 0) 
+            return -1;
+        if(x == 0)
+            return 0;
+        double y = ((double) x) / 2;
+        // y * y - x > 0.00001 ==> y * y != x
+        while(Math.abs(y * y - x) > 0.00001){
+            y = (y + x / y) / 2;
+        }
+        return (int) y;
+    }
+}
+
+24. Single Number
+public class Solution{
+    public int singleNumber(int[] A){
+    int num = A[0];
+    for(int i = 1; i < A.length; i++){
+        num ^= A[i];
+    }
+    return num;
+  }
+}
+
+25. 给一个list， 有两个数，一直加数字进去知道没有可能性，要保证：
+    a. list所有数均大于零
+    b. list中所有书都必须为unique
+    c. 新加入的数必须为已存在list中的某两数的差
+example: Given [30,5]
+Output: [30,5,25,20,15,10]
+
+26. Trie
+/**
+ * Implement a trie with insert, search, and startsWith methods.
+ * Note:
+ * You may assume that all inputs are consist of lowercase letters a-z.
+ */
+
+class TrieNode {
+    // Initialize your data structure here.
+    char c;
+    HashMap<Character, TrieNode> children = new HashMap<Character, TrieNode>();
+    boolean isLeaf;
+    public TrieNode() {
+        
+    }
+    public TrieNode(char c) {
+        this.c = c;
+    }
+}
+
+public class Trie {
+    private TrieNode root;
+
+    public Trie() {
+        root = new TrieNode();
+    }
+
+    // Inserts a word into the trie.
+    public void insert(String word) {
+        HashMap<Character, TrieNode> children = root.children;
+        for(int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            TrieNode t;
+            if(children.containsKey(c)) {
+                t = children.get(c);
+            } else {
+                t = new TrieNode(c);
+                children.put(c, t);
+            }
+            children = t.children;
+            // set leaf node
+            if(i == word.length() - 1) t.isLeaf = true;
+        }
+        
+     }
+
+    // Returns if the word is in the trie.
+    public boolean search(String word) {
+        TrieNode t = searchNode(word);
+        if(t != null && t.isLeaf)  return true;
+        else return false;
+    }
+
+    // Returns if there is any word in the trie
+    // that starts with the given prefix.
+    public boolean startsWith(String prefix) {
+        if(searchNode(prefix) == null) return false;
+        else return true;
+    }
+    
+    public TrieNode searchNode(String str) {
+        Map<Character, TrieNode> children = root.children;
+        TrieNode t = null;
+        for(int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if(children.containsKey(c)) {
+                t = children.get(c);
+                children = t.children;
+            } else return null;
+        }
+        return t;
+    }
+}
+
+// Your Trie object will be instantiated and called as such:
+// Trie trie = new Trie();
+// trie.insert("somestring");
+// trie.search("key");
+
+27. String Compression: aaabbbccccbaddd --> a3b2c4bad3
+
+28. Candy
+/**
+ * There are N children standing in a line. Each child is assigned a rating value.
+ * You are giving candies to these children subjected to the following requirements:
+ *      Each child must have at least one candy.
+ *     Children with a higher rating get more candies than their neighbors.
+ * What is the minimum candies you must give?
+ */
+ 
+public class Solution {
+    public int candy(int[] ratings) {
+        int[] candy = new int[ratings.length];
+        for(int i = 0;i < candy.length;i++)
+            candy[i] = 1;
+        for (int i = 1; i < candy.length; i++)
+            if (ratings[i] > ratings[i - 1])
+                candy[i] = candy[i - 1] + 1;
+        for (int i = candy.length - 2; i >= 0; i--)
+            if (ratings[i] > ratings[i + 1] && candy[i] <= candy[i + 1])
+                candy[i] = candy[i + 1] + 1;
+        int sum = 0;
+        for (int i : candy)
+            sum += i;
+        return sum;
+    }
+}
+
+29. Populating Next Right Pointers in Each Node
+I. 
+Given a binary tree
+
+    struct TreeLinkNode {
+      TreeLinkNode *left;
+      TreeLinkNode *right;
+      TreeLinkNode *next;
+    }
+    Populate each next pointer to point to its next right node. If there is no next right node, the next pointer should be set to NULL.
+    
+    Initially, all next pointers are set to NULL.
+    
+    Note:
+    
+    You may only use constant extra space.
+    You may assume that it is a perfect binary tree (ie, all leaves are at the same level, and every parent has two children).
+    For example,
+    Given the following perfect binary tree,
+             1
+           /  \
+          2    3
+         / \  / \
+        4  5  6  7
+    After calling your function, the tree should look like:
+             1 -> NULL
+           /  \
+          2 -> 3 -> NULL
+         / \  / \
+        4->5->6->7 -> NULL
+
+/**
+ * Definition for binary tree with next pointer.
+ * public class TreeLinkNode {
+ *     int val;
+ *     TreeLinkNode left, right, next;
+ *     TreeLinkNode(int x) { val = x; }
+ * }
+ */
+ public class Solution {
+    public void connect(TreeLinkNode root) {
+        TreeLinkNode leftwall = root;
+        while(leftwall != null){
+            TreeLinkNode across = leftwall;
+            while(across != null){
+                if(across.left != null)
+                    across.left.next = across.right;
+                if(across.right != null && across.next != null)
+                    across.right.next = across.next.left;
+                across = across.next;
+            }
+            leftwall = leftwall.left;
+        }       
+    }
+ }
+II.
+ Follow up for problem "Populating Next Right Pointers in Each Node".
+
+    What if the given tree could be any binary tree? Would your previous solution still work?
+    
+    Note:
+    
+    You may only use constant extra space.
+    For example,
+    Given the following binary tree,
+             1
+           /  \
+          2    3
+         / \    \
+        4   5    7
+    After calling your function, the tree should look like:
+             1 -> NULL
+           /  \
+          2 -> 3 -> NULL
+         / \    \
+        4-> 5 -> 7 -> NULL
+
+public class Solution{
+    public void connect(TreeLinkNode root) {
+        Queue<TreeLinkNode> queue = new LinkedList<TreeLinkNode>();
+        TreeLinkNode temp = null;
+        if(root == null) 
+            return;
+        queue.offer(root);
+        queue.offer(null); // as a marker to mark the level
+        while(!queue.isEmpty()){
+            temp = queue.poll();
+            if(temp != null){
+                // means not the end of a level
+                temp.next = queue.peek();
+                if(temp.left != null)  
+                    queue.offer(temp.left);
+                if(temp.right != null)
+                    queue.offer(temp.right);
+            }else{
+                // completion of current level
+                if(!queue.isEmpty())
+                    queue.offer(null);
+            }    
+        }
+    }
+}
+
+
 
 
 

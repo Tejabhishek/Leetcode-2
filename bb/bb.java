@@ -1419,42 +1419,99 @@ private void helper(int[][] board, int x, int y, int k, int res, int path) {
 }
 
 32. phone combination + word break
+public class Solution {
+    static Map<Character, String> letterMap = new HashMap<Character, String>();
+    static{
+        letterMap.put('0', "");
+        letterMap.put('1', "");
+        letterMap.put('2', "abc");
+        letterMap.put('3', "def");
+        letterMap.put('4', "ghi");
+        letterMap.put('5', "jkl");
+        letterMap.put('6', "mno");
+        letterMap.put('7', "pqrs");
+        letterMap.put('8', "tuv");
+        letterMap.put('9', "wxyz");
+    }
+    
+    public ArrayList<String> letterCombinations(String digits) {
+        ArrayList<String> res = new ArrayList<String>();
+        if(digits == null || digits.length() == 0) return res;
+        char[] cs = new char[digits.length()];
+        appendDigits(digits, 0, cs, res);
+        return res;
+    }
+    
+    private void appendDigits(String digits, int i, char[] cs, ArrayList<String> res){
+        if(i == digits.length()){
+            res.add(new String(cs));
+            return;
+        }
+        String letters = letterMap.get(digits.charAt(i));
+        for(int j = 0; j < letters.length(); j++){
+            cs[i] = letters.charAt(j);
+            appendDigits(digits, i + 1, cs, res);
+        }
+    }
+}
 
 33.trapping water
-//Version 0: Two pointer
+Use Stack Solution:
+public class Solution{
+    public int trap(int[] A) { 
+        // skip zeros  
+        int cur = 0;  
+        while (cur < A.length && A[cur] == 0) 
+            ++cur;  
+       
+        // check each one  
+        int vol = 0;  
+        Stack<Integer> stack = new Stack<Integer>();  
+        while (cur < A.length) {  
+            while (!stack.isEmpty() && A[cur] >= A[stack.peek()]) {  
+               int b = stack.pop();  
+               if (stack.isEmpty()) 
+                break;  
+               vol += ((cur - stack.peek() - 1) * (Math.min(A[cur], A[stack.peek()]) - A[b]));  
+            }  
+            stack.push(cur);  
+            ++cur;  
+        }  
+       
+       return vol;  
+    }  
+}
+
+Regular Solution:
+/**
+ * Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it is able to trap after raining.
+ * For example, 
+ * Given [0,1,0,2,1,0,1,3,2,1,2,1], return 6.
+ */
 public class Solution {
-    /**
-     * @param heights: an array of integers
-     * @return: a integer
-     */
-    public int trapRainWater(int[] heights) {
-        // write your code here
-        int left = 0, right = heights.length - 1; 
+    public int trap(int[] A) {
         int res = 0;
-        if(left >= right)
+        if(A.length < 2)
             return res;
-        int leftheight = heights[left];
-        int rightheight = heights[right];
-        while(left < right) {
-            if(leftheight < rightheight) {
-                left ++;
-                if(leftheight > heights[left]) {
-                    res += (leftheight - heights[left]);
-                } else {
-                    leftheight = heights[left];
-                }
-            } else {
-                right --;
-                if(rightheight > heights[right]) {
-                    res += (rightheight - heights[right]);
-                } else {
-                    rightheight = heights[right];
-                }
+        int[] leftMost = new int[A.length];
+        int[] rightMost = new int[A.length];
+        // Initialization;
+        leftMost[0] = 0;
+        rightMost[A.length - 1] = 0;
+        for(int i = 1; i < A.length - 1; i++){
+            leftMost[i] = Math.max(leftMost[i - 1], A[i - 1]);
+        }
+        for(int i = A.length - 2; i >= 0; i--){
+            rightMost[i] = Math.max(rightMost[i + 1], A[i + 1]);
+        }
+        for(int i = 0; i < A.length; i++){
+            if(Math.min(leftMost[i], rightMost[i]) - A[i] > 0){
+                res += Math.min(leftMost[i], rightMost[i]) - A[i];
             }
         }
         return res;
     }
-}      
+}
 
 34. Race Condition in Distributed System
 
@@ -2074,10 +2131,151 @@ public class Solution {
                 return j + 1;
         }
         return A.length + 1;
-    } 
+    }
+    
 }
 
-52. Power(x, n) 
+52. Given n people and a relationship among them. like <a,b,c,d>, <c,a,b>,<e,f>,<g>... return how many groups are there?
+
+53. leetcode-287 find duplicate numbers
+/**
+ * Given an array nums containing n + 1 integers where each integer is between 1 and n (inclusive), prove that at least one duplicate number must exist. 
+ * Assume that there is only one duplicate number, find the duplicate one.
+ * Note:
+ * 1. You must not modify the array (assume the array is read only).
+ * 2. You must use only constant, O(1) extra space.
+ * 3. Your runtime complexity should be less than O(n^2).
+ * 4. There is only one duplicate number in the array, but it could be repeated more than once.
+ */
+
+public class Solution {
+    /** Solution: 
+     * These numbers constitute a linked list and the value of the node (a array cell) is the index of the next node, and there must be a cycle. 
+     * Therefore, we use the classical "fast and slow pointers". 
+     * http://keithschwarz.com/interesting/code/?dir=find-duplicate
+     */
+    public int findDuplicate(int[] nums) {
+        int fast, slow; 
+        fast = slow = nums[0];
+        do {
+            fast = nums[nums[fast]];
+            slow = nums[slow];
+        } while (fast != slow);
+        slow = nums[0];
+        while(fast != slow) {
+            fast = nums[fast];
+            slow = nums[slow];
+        }
+        return fast;
+    }
+}
+
+Binary Search Solution:
+public int findDuplicate(int[] nums) {
+    if( nums == null || nums.length <2){ //No duplicate if length is 1
+        return 0;
+    }
+
+    int low=1, mid, high = nums.length - 1;  //values range from [1..n-1]
+    int countLessThanMid = 0;
+    while (low < high) {
+        //Recalculate the mid based on half range reduced [lower', high']
+        mid = low + (high - low)/2;
+
+        //Count how many numbers less than mid
+        for(int x: nums) {
+            //Valid data checking
+            if(x >= nums.length || x < 1) {
+                return x;
+            }
+
+            if(x <=mid) countLessThanMid++;
+        }
+
+        if(countLessThanMid > mid) {
+            //duplicate occurs in [lower, mid]
+            high=mid;
+        } else {
+            //dupicate occurs in [mid+1, high]
+            low=mid+1;
+        }
+        countLessThanMid = 0;
+    }
+
+    return low;
+}
+
+54. rand(x)
+Solution 1: randomNum = minimum + (int)(Math.random() * maximum); 
+
+from rand(5) to rand(7):
+int rand7() {
+    int value = rand5()
+              + rand5() * 2
+              + rand5() * 3
+              + rand5() * 4
+              + rand5() * 5
+              + rand5() * 6;
+    return value%7;
+}
+
+55. Combination Sums
+/**
+ * Given a set of candidate numbers (C) and a target number (T), find all unique combinations in C where the candidate numbers sums to T.
+ * The same repeated number may be chosen from C unlimited number of times.
+ * Note:
+ *      All numbers (including target) will be positive integers.
+ *      Elements in a combination (a1, a2, … , ak) must be in non-descending order. (ie, a1 ≤ a2 ≤ … ≤ ak).
+ *      The solution set must not contain duplicate combinations.
+ * For example, given candidate set 2,3,6,7 and target 7, 
+ * A solution set is: 
+ * [7] 
+ * [2, 2, 3] 
+ */
+ 
+public class Solution {
+    public ArrayList<ArrayList<Integer>> combinationSum(int[] candidates, int target) {
+        ArrayList<ArrayList<Integer>> res = new ArrayList<ArrayList<Integer>>();
+        Arrays.sort(candidates);
+        combinationSumHelper(candidates, 0, target, new ArrayList<Integer>(), res);
+        return res;
+    }
+    
+    public void combinationSumHelper(int[] candidates, int start, int target, ArrayList<Integer> path, ArrayList<ArrayList<Integer>> res){
+        if(target < 0 || start < 0 || start >= candidates.length)
+            return;
+        if(target == 0) {
+            ArrayList<Integer> result = new ArrayList<Integer>(path);
+            res.add(result);
+        }else {
+            for(int i = start; i < candidates.length && candidates[i] <= target; i++){
+                path.add(candidates[i]);
+                combinationSumHelper(candidates, i, target - candidates[i], path, res);
+                path.remove(path.size() - 1); //reset the variable.
+            }
+        }
+    }
+}
+
+56. isBST
+public class Solution {
+    public boolean isValidBST(TreeNode root) {
+        if(root == null) return true;
+        if(root.left == null && root.right == null) return true;
+        return isBSTUtil(root, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+
+    public boolean isBSTUtil(TreeNode root, int min, int max) {
+        if (root == null)
+            return true;
+        return (root.val > min && root.val < max && isBSTUtil(root.left, min, root.val) && isBSTUtil(root.right, root.val, max));
+    }
+}
+
+57. Maximal Square 
+DP Solution:
+
+58. Pow(x, n)
 /**
  * Implement pow(x, n).
  */
@@ -2092,98 +2290,121 @@ public class Solution {
             return half * half * x;
         else return half * half / x;
     }
-    
-    public double pow(double x, int n) {
-        if(n == 0) return 1.0;
-        if(n < 0) {
-            n = -n;
-            x = 1 / x;
+}
+
+59. Leetcode-328: Odd Even LinkedList
+public class Solution {
+    public ListNode oddEvenList(ListNode head) {
+        if (head != null) {
+        
+            ListNode odd = head, even = head.next, evenHead = even; 
+        
+            while (even != null && even.next != null) {
+                odd.next = odd.next.next; 
+                even.next = even.next.next; 
+                odd = odd.next;
+                even = even.next;
+            }
+            odd.next = evenHead; 
         }
-        return (n % 2 == 0) ? pow(x * x, n / 2) : x * pow(x * x, n / 2);
+        return head;
     }
 }
 
-53. flatten Binary Tree
+60. First Unique Character in a String
+public class Solution {
+    public int firstUniqChar(String s) {
+        int index = 0;
+        int[] counts = new int[26];
+        for(char c: s.toCharArray()) {
+            counts[c - 'a']++;
+        }
+        for(int i = 0; i < s.length(); i++) {
+            if(counts[s.charAt(i) - 'a'] == 1) return i;
+        }
+        return -1;
+    }
+}
+
+61. Course Schedule II
+public int[] findOrder(int numCourses, int[][] prerequisites) {
+    if(numCourses == 0) return 0;
+    // Covert graph presentation from edges from indegree of adjacent list
+    // indegree means how many edges are pointed to the vertex
+    // outdegree means how many edges current vertex are pointing out
+    int indegree[] = new int[numCourses], order[] = new int[numCourses], index = 0;
+    for(int i = 0; i < prerequisites.length; i++) {
+        //Indegree - how many prerequisites are needed.
+        indegree[presentation[i][0]]++;
+    }
+    Queue<Integer> queue = new LinkedList<Integer>();
+    for(int i = 0; i < numCourses; i++) {
+        if(indegree[i] == 0) {
+            // Add the course to the order because it has no prerequisites
+            order[index++] = i;
+            queue.offer(i);
+        }
+    }
+    // How many courses don't need prerequisites
+    while(!queue.isEmpty()) {
+        int prerequisite = queue.poll(); // Already finished this prerequisite course
+        for(int i = 0; i < prerequisites.length; i++) {
+            if(prerequisites[i][1] == prerequisite) {
+                indegree[prerequisites[i][0]]--;
+                if(indegree[prerequisites[i][0]] == 0) {
+                    // If indegree is zero, then add the course to the order
+                    order[index++] = prerequisites[i][0];
+                    queue.offer(prerequisites[i][0]);
+                }
+            }
+        }
+    }
+    return (index == numCourses) ? order: new int[0];
+}
+
+62. Implement Queue with Stacks
 /**
- * Given a binary tree, flatten it to a linked list in-place.
- * For example,
- * Given
- *       1
- *      / \
- *     2   5
- *    / \   \
- *   3   4   6
- * The flattened tree should look like:
- * 1
- *  \
- *   2
- *    \
- *     3
- *      \
- *       4
- *        \
- *         5
- *          \
- *             6
- * Hints:
- * If you notice carefully in the flattened tree, each node's right child points to the next node of a pre-order traversal.
- */
- 
- /**
- * Definition for binary tree
- * public class TreeNode {
- *     int val;
- *     TreeNode left;
- *     TreeNode right;
- *     TreeNode(int x) { val = x; }
- * }
+ * Implement the following operations of a queue using stacks.
+ * push(x) -- Push element x to the back of queue.
+ * pop() -- Removes the element from in front of queue.
+ * peek() -- Get the front element.
+ * empty() -- Return whether the queue is empty.
+ * Notes:
+ * 1. You must use only standard operations of a stack -- which means only push to top, peek/pop from top, size, and is empty operations are valid.
+ * 2. Depending on your language, stack may not be supported natively. 
+ *    You may simulate a stack by using a list or deque (double-ended queue), as long as you use only standard operations of a stack.
+ * 3. You may assume that all operations are valid (for example, no pop or peek operations will be called on an empty queue).
  */
 
-// Recursion Pre-order solution: 
-public class Solution {
-    public void flatten(TreeNode root) {
-        ArrayList<TreeNode> nodes = new ArrayList<TreeNode>();
-        if(root == null)
-            return;
-        nodes = preOrder(root, nodes);
-        for(int i = 0; i < nodes.size() - 1; i++){
-            nodes.get(i).left = null;
-            nodes.get(i).right = nodes.get(i + 1);
+class MyQueue {
+    Stack<Integer> stack = new Stack<Integer>();
+    // Push element x to the back of queue.
+    public void push(int x) {
+        Stack<Integer> rev = new Stack<Integer>();
+        while(!stack.empty()) {
+            rev.push(stack.pop());
+        }
+        rev.push(x);
+        while(!rev.empty()) {
+            stack.push(rev.pop());
         }
     }
-    public ArrayList<TreeNode> preOrder(TreeNode root, ArrayList<TreeNode> nodeList){
-        nodeList.add(root);
-        if(root.left != null)
-            preOrder(root.left, nodeList);
-        if(root.right != null)
-            preOrder(root.right, nodeList);
-        return nodeList;
-    }   
-}
 
-public class Solution {
-    public void flatten(TreeNode root) {
-        if(root == null) return;
-        TreeNode left = root.left;
-        TreeNode right = root.right;
-        if(left!=null){
-            root.right = left;
-            root.left = null;
-            TreeNode rightMost = root.right;
-            while(rightMost.right != null) rightMost = rightMost.right;
-            rightMost.right = right;
-        }
-        flatten(root.right);
+    // Removes the element from in front of queue.
+    public void pop() {
+        stack.pop();
+    }
+
+    // Get the front element.
+    public int peek() {
+        return stack.peek();
+    }
+
+    // Return whether the queue is empty.
+    public boolean empty() {
+        return stack.empty();
     }
 }
-
-
-
-
-
-
-
-
 
 
 

@@ -1421,6 +1421,40 @@ private void helper(int[][] board, int x, int y, int k, int res, int path) {
 32. phone combination + word break
 
 33.trapping water
+//Version 0: Two pointer
+public class Solution {
+    /**
+     * @param heights: an array of integers
+     * @return: a integer
+     */
+    public int trapRainWater(int[] heights) {
+        // write your code here
+        int left = 0, right = heights.length - 1; 
+        int res = 0;
+        if(left >= right)
+            return res;
+        int leftheight = heights[left];
+        int rightheight = heights[right];
+        while(left < right) {
+            if(leftheight < rightheight) {
+                left ++;
+                if(leftheight > heights[left]) {
+                    res += (leftheight - heights[left]);
+                } else {
+                    leftheight = heights[left];
+                }
+            } else {
+                right --;
+                if(rightheight > heights[right]) {
+                    res += (rightheight - heights[right]);
+                } else {
+                    rightheight = heights[right];
+                }
+            }
+        }
+        return res;
+    }
+}      
 
 34. Race Condition in Distributed System
 
@@ -2040,11 +2074,108 @@ public class Solution {
                 return j + 1;
         }
         return A.length + 1;
-    }
-    
+    } 
 }
 
+52. Power(x, n) 
+/**
+ * Implement pow(x, n).
+ */
+public class Solution {
+    public double pow(double x, int n) {
+        if(n == 0)
+            return 1.0;
+        double half = pow(x, n / 2);
+        if(n % 2 == 0)
+            return half * half;
+        else if(n > 0)
+            return half * half * x;
+        else return half * half / x;
+    }
+    
+    public double pow(double x, int n) {
+        if(n == 0) return 1.0;
+        if(n < 0) {
+            n = -n;
+            x = 1 / x;
+        }
+        return (n % 2 == 0) ? pow(x * x, n / 2) : x * pow(x * x, n / 2);
+    }
+}
 
+53. flatten Binary Tree
+/**
+ * Given a binary tree, flatten it to a linked list in-place.
+ * For example,
+ * Given
+ *       1
+ *      / \
+ *     2   5
+ *    / \   \
+ *   3   4   6
+ * The flattened tree should look like:
+ * 1
+ *  \
+ *   2
+ *    \
+ *     3
+ *      \
+ *       4
+ *        \
+ *         5
+ *          \
+ *             6
+ * Hints:
+ * If you notice carefully in the flattened tree, each node's right child points to the next node of a pre-order traversal.
+ */
+ 
+ /**
+ * Definition for binary tree
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+
+// Recursion Pre-order solution: 
+public class Solution {
+    public void flatten(TreeNode root) {
+        ArrayList<TreeNode> nodes = new ArrayList<TreeNode>();
+        if(root == null)
+            return;
+        nodes = preOrder(root, nodes);
+        for(int i = 0; i < nodes.size() - 1; i++){
+            nodes.get(i).left = null;
+            nodes.get(i).right = nodes.get(i + 1);
+        }
+    }
+    public ArrayList<TreeNode> preOrder(TreeNode root, ArrayList<TreeNode> nodeList){
+        nodeList.add(root);
+        if(root.left != null)
+            preOrder(root.left, nodeList);
+        if(root.right != null)
+            preOrder(root.right, nodeList);
+        return nodeList;
+    }   
+}
+
+public class Solution {
+    public void flatten(TreeNode root) {
+        if(root == null) return;
+        TreeNode left = root.left;
+        TreeNode right = root.right;
+        if(left!=null){
+            root.right = left;
+            root.left = null;
+            TreeNode rightMost = root.right;
+            while(rightMost.right != null) rightMost = rightMost.right;
+            rightMost.right = right;
+        }
+        flatten(root.right);
+    }
+}
 
 
 

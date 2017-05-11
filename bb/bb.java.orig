@@ -810,114 +810,94 @@ public class Solution {
  * set(key, value) - Set or insert the value if the key is not already present. When the cache reached its capacity, it should invalidate the least recently used item before inserting a new item.
  */
 
-The problem can be solved with a hashtable that keeps track of the keys and its values in the double linked list. 
-One interesting property about double linked list is that the node can remove itself without other reference. 
-In addition, it takes constant time to add and remove nodes from the head or tail.
-
-class DLinkedNode {
-    int key;
-    int value;
-    DLinkedNode pre;
-    DLinkedNode post;
-}
-
-/**
- * Always add the new node right after head;
- */
-private void addNode(DLinkedNode node){
-    node.pre = head;
-    node.post = head.post;
+public class LRUCache {
+    private HashMap<Integer, LRUCache.DoubleLinkedListNode> map = new HashMap<Integer, LRUCache.DoubleLinkedListNode>();
+    private DoubleLinkedListNode head;
+    private DoubleLinkedListNode end;
+    private int capacity;
+    private int len;
     
-    head.post.pre = node;
-    head.post = node;
-}
-
-/**
- * Remove an existing node from the linked list.
- */
-private void removeNode(DLinkedNode node){
-    DLinkedNode pre = node.pre;
-    DLinkedNode post = node.post;
-    
-    pre.post = post;
-    post.pre = pre;
-}
-
-/**
- * Move certain node in between to the head.
- */
-private void moveToHead(DLinkedNode node){
-    this.removeNode(node);
-    this.addNode(node);
-}
-
-// pop the current tail. 
-private DLinkedNode popTail(){
-    DLinkedNode res = tail.pre;
-    this.removeNode(res);
-    return res;
-}
-
-private Hashtable<Integer, DLinkedNode> 
-    cache = new Hashtable<Integer, DLinkedNode>();
-private int count;
-private int capacity;
-private DLinkedNode head, tail;
-
-public LRUCache(int capacity) {
-    this.count = 0;
-    this.capacity = capacity;
-
-    head = new DLinkedNode();
-    head.pre = null;
-    
-    tail = new DLinkedNode();
-    tail.post = null;
-    
-    head.post = tail;
-    tail.pre = head;
-}
-
-public int get(int key) {
-    
-    DLinkedNode node = cache.get(key);
-    if(node == null){
-        return -1; // should raise exception here.
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        this.len = 0;
     }
     
-    // move the accessed node to the head;
-    this.moveToHead(node);
-    
-    return node.value;
-}
-
-
-public void set(int key, int value) {
-    DLinkedNode node = cache.get(key);
-    
-    if(node == null){
-        
-        DLinkedNode newNode = new DLinkedNode();
-        newNode.key = key;
-        newNode.value = value;
-        
-        this.cache.put(key, newNode);
-        this.addNode(newNode);
-        
-        ++count;
-        
-        if(count > capacity){
-            // pop the tail
-            DLinkedNode tail = this.popTail();
-            this.cache.remove(tail.key);
-            --count;
+    public int get(int key) {
+        if(this.map.containsKey(key)){
+            // move this referred frame to the front;
+            removeNode(this.map.get(key));
+            setHead(this.map.get(key));
+            return this.map.get(key).val;
+        }else{
+            return -1;
         }
-    }else{
-        // update the value.
-        node.value = value;
-        this.moveToHead(node);
     }
     
+    public void set(int key, int value) {
+        if(this.map.containsKey(key)){
+            // if the map contains this frame, set the value, move it to the front. 
+            DoubleLinkedListNode curr = this.map.get(key);
+            curr.val = value;
+            removeNode(curr);
+            setHead(curr);
+        }else{
+            // if the map doesn't contain this frame, insert it.
+            DoubleLinkedListNode curr = new DoubleLinkedListNode(key, value);
+            if(this.len < this.capacity){
+                setHead(curr);
+                this.map.put(key, curr);
+                this.len++;
+            }else{
+                this.map.remove(this.end.key);
+                this.end = this.end.pre;
+                if(this.end != null){
+                    this.end.post = null;
+                }
+                setHead(curr);
+                this.map.put(key, curr);
+            }
+        }
+    }
+    
+    private class DoubleLinkedListNode {
+        public int val;
+        public int key;
+        public DoubleLinkedListNode pre;
+        public DoubleLinkedListNode post;
+        // constuctor
+        public DoubleLinkedListNode(int key, int value){
+            this.val = value;
+            this.key = key;
+        }
+    }
+    
+    private void setHead(DoubleLinkedListNode node){
+        node.post = this.head;
+        node.pre = null;
+        if(this.head != null){
+            this.head.pre = node;
+        }
+        this.head = node;
+        if(this.end == null){
+            this.end = node;
+        }
+    }
+    
+    private void removeNode(DoubleLinkedListNode node){
+        DoubleLinkedListNode curr = node;
+        DoubleLinkedListNode pre = curr.pre;
+        DoubleLinkedListNode post = curr.post;
+        if(pre != null){
+            pre.post = post;
+        }else{
+            this.head = post;
+        }
+        if(post != null){
+            post.pre = pre;
+        }else{
+            this.end = pre;
+        }
+    }
 }
 
 17. Move Zeroes
@@ -1476,6 +1456,7 @@ public class Solution {
 }
 
 33.trapping water
+<<<<<<< HEAD
 //Version 0: Two pointer
 public class Solution {
     /**
@@ -1505,11 +1486,68 @@ public class Solution {
                 } else {
                     rightheight = heights[right];
                 }
+=======
+Use Stack Solution:
+public class Solution{
+    public int trap(int[] A) { 
+        // skip zeros  
+        int cur = 0;  
+        while (cur < A.length && A[cur] == 0) 
+            ++cur;  
+       
+        // check each one  
+        int vol = 0;  
+        Stack<Integer> stack = new Stack<Integer>();  
+        while (cur < A.length) {  
+            while (!stack.isEmpty() && A[cur] >= A[stack.peek()]) {  
+               int b = stack.pop();  
+               if (stack.isEmpty()) 
+                break;  
+               vol += ((cur - stack.peek() - 1) * (Math.min(A[cur], A[stack.peek()]) - A[b]));  
+            }  
+            stack.push(cur);  
+            ++cur;  
+        }  
+       
+       return vol;  
+    }  
+}
+
+Regular Solution:
+/**
+ * Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it is able to trap after raining.
+ * For example, 
+ * Given [0,1,0,2,1,0,1,3,2,1,2,1], return 6.
+ */
+public class Solution {
+    public int trap(int[] A) {
+        int res = 0;
+        if(A.length < 2)
+            return res;
+        int[] leftMost = new int[A.length];
+        int[] rightMost = new int[A.length];
+        // Initialization;
+        leftMost[0] = 0;
+        rightMost[A.length - 1] = 0;
+        for(int i = 1; i < A.length - 1; i++){
+            leftMost[i] = Math.max(leftMost[i - 1], A[i - 1]);
+        }
+        for(int i = A.length - 2; i >= 0; i--){
+            rightMost[i] = Math.max(rightMost[i + 1], A[i + 1]);
+        }
+        for(int i = 0; i < A.length; i++){
+            if(Math.min(leftMost[i], rightMost[i]) - A[i] > 0){
+                res += Math.min(leftMost[i], rightMost[i]) - A[i];
+>>>>>>> 269705b622e00310c0d8d3f4f6627dc133351b7d
             }
         }
         return res;
     }
+<<<<<<< HEAD
 }      
+=======
+}
+>>>>>>> 269705b622e00310c0d8d3f4f6627dc133351b7d
 
 34. Race Condition in Distributed System
 
@@ -1521,43 +1559,7 @@ public class Solution {
     if the rest of characters is smaller than k, reverse them.
 
 
-38. Path Sum 
-I.
-/**
- * Given a binary tree and a sum, determine if the tree has a root-to-leaf path such that adding up all the values along the path equals the given sum.
- * For example:
- * Given the below binary tree and sum = 22,
- *            5
- *           / \
- *          4   8
- *         /   / \
- *        11  13  4
- *       /  \      \
- *      7    2      1
- * return true, as there exist a root-to-leaf path 5->4->11->2 which sum is 22.
- */
- 
- /**
- * Definition for binary tree
- * public class TreeNode {
- *     int val;
- *     TreeNode left;
- *     TreeNode right;
- *     TreeNode(int x) { val = x; }
- * }
- */
-public class Solution {
-    public boolean hasPathSum(TreeNode root, int sum) {
-        if(root == null)
-            return false;
-        if(root.left == null && root.right == null && root.val == sum)
-            return true;
-        else
-            return hasPathSum(root.left, sum - root.val) || hasPathSum(root.right, sum - root.val);
-    }
-}
-
-II.
+38. Path Sum II
 /**
  * Given a binary tree and a sum, find all root-to-leaf paths where each path's sum equals the given sum.
  * For example:
@@ -2165,10 +2167,108 @@ public class Solution {
                 return j + 1;
         }
         return A.length + 1;
-    }
-    
+    } 
 }
 
+52. Power(x, n) 
+/**
+ * Implement pow(x, n).
+ */
+public class Solution {
+    public double pow(double x, int n) {
+        if(n == 0)
+            return 1.0;
+        double half = pow(x, n / 2);
+        if(n % 2 == 0)
+            return half * half;
+        else if(n > 0)
+            return half * half * x;
+        else return half * half / x;
+    }
+    
+    public double pow(double x, int n) {
+        if(n == 0) return 1.0;
+        if(n < 0) {
+            n = -n;
+            x = 1 / x;
+        }
+        return (n % 2 == 0) ? pow(x * x, n / 2) : x * pow(x * x, n / 2);
+    }
+}
+
+<<<<<<< HEAD
+53. flatten Binary Tree
+/**
+ * Given a binary tree, flatten it to a linked list in-place.
+ * For example,
+ * Given
+ *       1
+ *      / \
+ *     2   5
+ *    / \   \
+ *   3   4   6
+ * The flattened tree should look like:
+ * 1
+ *  \
+ *   2
+ *    \
+ *     3
+ *      \
+ *       4
+ *        \
+ *         5
+ *          \
+ *             6
+ * Hints:
+ * If you notice carefully in the flattened tree, each node's right child points to the next node of a pre-order traversal.
+ */
+ 
+ /**
+ * Definition for binary tree
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+
+// Recursion Pre-order solution: 
+public class Solution {
+    public void flatten(TreeNode root) {
+        ArrayList<TreeNode> nodes = new ArrayList<TreeNode>();
+        if(root == null)
+            return;
+        nodes = preOrder(root, nodes);
+        for(int i = 0; i < nodes.size() - 1; i++){
+            nodes.get(i).left = null;
+            nodes.get(i).right = nodes.get(i + 1);
+        }
+    }
+    public ArrayList<TreeNode> preOrder(TreeNode root, ArrayList<TreeNode> nodeList){
+        nodeList.add(root);
+        if(root.left != null)
+            preOrder(root.left, nodeList);
+        if(root.right != null)
+            preOrder(root.right, nodeList);
+        return nodeList;
+    }   
+}
+
+public class Solution {
+    public void flatten(TreeNode root) {
+        if(root == null) return;
+        TreeNode left = root.left;
+        TreeNode right = root.right;
+        if(left!=null){
+            root.right = left;
+            root.left = null;
+            TreeNode rightMost = root.right;
+            while(rightMost.right != null) rightMost = rightMost.right;
+            rightMost.right = right;
+        }
+        flatten(root.right);
+=======
 52. Given n people and a relationship among them. like <a,b,c,d>, <c,a,b>,<e,f>,<g>... return how many groups are there?
 
 53. leetcode-287 find duplicate numbers
@@ -2201,6 +2301,7 @@ public class Solution {
             slow = nums[slow];
         }
         return fast;
+>>>>>>> 269705b622e00310c0d8d3f4f6627dc133351b7d
     }
 }
 
@@ -2440,610 +2541,11 @@ class MyQueue {
     }
 }
 
-63. Maximum Points in a line
-/*
- *  A line is determined by two factors,say y=ax+b
- *  
- *  If two points(x1,y1) (x2,y2) are on the same line(Of course). 
-
- *  Consider the gap between two points.
-
- *  We have (y2-y1)=a(x2-x1),a=(y2-y1)/(x2-x1) a is a rational, b is canceled since b is a constant
-
- *  If a third point (x3,y3) are on the same line. So we must have y3=ax3+b
-
- *  Thus,(y3-y1)/(x3-x1)=(y2-y1)/(x2-x1)=a
-
- *  Since a is a rational, there exists y0 and x0, y0/x0=(y3-y1)/(x3-x1)=(y2-y1)/(x2-x1)=a
-
- *  So we can use y0&x0 to track a line;
- */
-
-public class Solution{
-    public int maxPoints(Point[] points) {
-        if (points==null) return 0;
-        if (points.length<=2) return points.length;
-        
-        Map<Integer,Map<Integer,Integer>> map = new HashMap<Integer,Map<Integer,Integer>>();
-        int result=0;
-        for (int i=0;i<points.length;i++){ 
-            map.clear();
-            int overlap=0,max=0;
-            for (int j=i+1;j<points.length;j++){
-                int x=points[j].x-points[i].x;
-                int y=points[j].y-points[i].y;
-                if (x==0&&y==0){
-                    overlap++;
-                    continue;
-                }
-                int gcd=generateGCD(x,y);
-                if (gcd!=0){
-                    x/=gcd;
-                    y/=gcd;
-                }
-                
-                if (map.containsKey(x)){
-                    if (map.get(x).containsKey(y)){
-                        map.get(x).put(y, map.get(x).get(y)+1);
-                    }else{
-                        map.get(x).put(y, 1);
-                    }                       
-                }else{
-                    Map<Integer,Integer> m = new HashMap<Integer,Integer>();
-                    m.put(y, 1);
-                    map.put(x, m);
-                }
-                max=Math.max(max, map.get(x).get(y));
-            }
-            result=Math.max(result, max+overlap+1);
-        }
-        return result;
-        
-        
-    }
-    private int generateGCD(int a,int b){
-
-        if (b==0) return a;
-        else return generateGCD(b,a%b);
-        
-    }
-}
-
-64. atoi
-public int myAtoi(String str) {
-    int index = 0, sign = 1, total = 0;
-    //1. Empty string
-    if(str.length() == 0) return 0;
-
-    //2. Remove Spaces
-    while(str.charAt(index) == ' ' && index < str.length())
-        index ++;
-
-    //3. Handle signs
-    if(str.charAt(index) == '+' || str.charAt(index) == '-'){
-        sign = str.charAt(index) == '+' ? 1 : -1;
-        index ++;
-    }
-    
-    //4. Convert number and avoid overflow
-    while(index < str.length()){
-        int digit = str.charAt(index) - '0';
-        if(digit < 0 || digit > 9) break;
-
-        //check if total will be overflow after 10 times and add digit
-        if(Integer.MAX_VALUE/10 < total || Integer.MAX_VALUE/10 == total && Integer.MAX_VALUE %10 < digit)
-            return sign == 1 ? Integer.MAX_VALUE : Integer.MIN_VALUE;
-
-        total = 10 * total + digit;
-        index ++;
-    }
-    return total * sign;
-}
-
-65. Intersection of Two Linked 
-public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
-    //boundary check
-    if(headA == null || headB == null) return null;
-    
-    ListNode a = headA;
-    ListNode b = headB;
-    
-    //if a & b have different len, then we will stop the loop after second iteration
-    while( a != b){
-        //for the end of first iteration, we just reset the pointer to the head of another linkedlist
-        a = a == null? headB : a.next;
-        b = b == null? headA : b.next;    
-    }
-    
-    return a;
-}
-
-66. H-index
-Given an array of citations (each citation is a non-negative integer) of a researcher, write a function to compute the researcher h-index.
-
-According to the definition of h-index on Wikipedia: "A scientist has index h if h of his/her N papers have at least h citations each, and the other N − h papers have no more than h citations each."
-
-For example, given citations = [3, 0, 6, 1, 5], which means the researcher has 5 papers in total and each of them had received 3, 0, 6, 1, 5 citations respectively. Since the researcher has 3 papers with at least 3 citations each and the remaining two with no more than 3 citations each, his h-index is 3.
-
-Note: If there are several possible values for h, the maximum one is taken as the h-index.
-
-public class Solution { 
-    public int hIndex(int[] citations) {
-        int length = citations.length;
-        if (length == 0) {
-            return 0;
-        }
-        
-        int[] array2 = new int[length + 1];
-        for (int i = 0; i < length; i++) {
-            if (citations[i] > length) {
-                array2[length] += 1;
-            } else {
-                array2[citations[i]] += 1;
-            }
-        }
-        int t = 0;
-        int result = 0;
-
-        for (int i = length; i >= 0; i--) {
-            t = t + array2[i];
-            if (t >= i) {
-                return i;
-            }
-        }
-        return 0;
-    }
-}
-
-67. Sum Root to Leaf Numbers
-public class Solution {
-    public int sumNumbers(TreeNode root) {
-        if(root == null)
-            return 0;
-        return sumNumbers(root, root.val);
-    }
-    public int sumNumbers(TreeNode root, int sum){
-        if(root == null)
-            return 0;
-        int leftSum = 0, rightSum = 0;
-        if(root.left == null && root.right == null)
-            return sum;
-        if(root.left != null)
-            leftSum = sumNumbers(root.left, 10 * sum + root.left.val);
-        if(root.right != null)
-            rightSum = sumNumbers(root.right, 10 * sum + root.right.val);
-        return leftSum + rightSum;
-    }
-}
-
-68. Reverse Integer
-public class Solution{
-    public int reverse(int x) {
-        int res = 0;
-        int lastDigit = 0;
-        boolean isNeg = x < 0 ? true : false;
-        x = Math.abs(x);
-        while(x > 0){
-            lastDigit = x % 10;
-            if(res > Integer.MAX_VALUE / 10) return 0;
-            res = lastDigit + res * 10;
-            x = x / 10;
-        }
-        if(isNeg) res = -res;
-        return res;
-        
-    }
-}
-
-69. Largest Rectangle in Histogram
-/**
- * Given n non-negative integers representing the histogram's bar height where the width of each bar is 1, find the area of largest rectangle in the histogram.
- * Above is a histogram where width of each bar is 1, given height = [2,1,5,6,2,3].
- * The largest rectangle is shown in the shaded area, which has area = 10 unit.
- * For example,
- * Given height = [2,1,5,6,2,3],
- * return 10.
- */
-public class Solution {
-    public int largestRectangleArea(int[] height) {
-        Stack<Integer> s = new Stack<Integer>();
-        if(height == null || height.length == 0)
-            return 0;
-        // Initialize max area
-        int max_area = 0;
-        int i = 0;
-        // run through all bars of given histogram
-        while(i < height.length) {
-            // If current bar is higher than the bar of the stack peek, push it to stack. 
-            if(s.empty() || height[s.peek()] <= height[i])
-                s.push(i++);
-            else {
-                // if current bar is lower than the stack peek, calculate area of rectangle with stack top as the smallest bar.
-                // 'i' is 'right index' for the top and element before top in stack is 'left index'
-                int top = s.pop();
-                // calculate the area with height[top] stack as smallest bar and update max_area if needed
-                max_area = Math.max(max_area, height[top] * (s.empty() ? i : i - s.peek() - 1));
-            }
-        }
-        // Now pop the remaining bars from stack and calculate area with every popped bar as the smallest bar.
-        while(!s.isEmpty()) {
-            int top = s.pop();
-            max_area = Math.max(max_area, height[top] * (s.empty() ? i : i - s.peek() - 1));
-        }
-        return max_area;
-    }
-}
-
-70. Pascal Triangle
-/**
- * Pascal's Triangle
- * Given numRows, generate the first numRows of Pascal's triangle.
- * For example, given numRows = 5,
- * Return
- * [
- *       [1],
- *      [1, 1]
- *     [1, 2, 1]
- *   [1, 3, 3, 1]
- * [1, 4, 6, 4, 1]
- * ]
- */
- public class Solution {
-    public ArrayList<ArrayList<Integer>> generate(int numRows) {
-        ArrayList<ArrayList<Integer>> res = new ArrayList<ArrayList<Integer>>();
-        if(numRows == 0) return res;
-        // Initialization
-        ArrayList<Integer> start = new ArrayList<Integer>();
-        start.add(1);
-        res.add(start);
-        for(int i = 1; i < numRows; i++){
-            ArrayList<Integer> prev = res.get(i - 1);
-            ArrayList<Integer> curr = new ArrayList<Integer>();
-            curr.add(1);
-            for(int j = 1; j < i; j++){
-                curr.add(prev.get(j - 1) + prev.get(j));
-            }
-            curr.add(1);
-            res.add(curr);
-        }
-        return res;
-    }
-}
-
-71. Construct Binary Tree from Preorder and Inorder
-/**
- * Given preorder and inorder traversal of a tree, construct the binary tree.
- * Note:
- * You may assume that duplicates do not exist in the tree.
- */
- 
- /**
- * Definition for binary tree
- * public class TreeNode {
- *     int val;
- *     TreeNode left;
- *     TreeNode right;
- *     TreeNode(int x) { val = x; }
- * }
- */
-public class Solution {
-    public TreeNode buildTree(int[] preorder, int[] inorder) {
-        return helper(0, 0, inorder.length - 1, preorder, inorder);
-    }
-    public TreeNode helper(int preStart, int inStart, int inEnd, int[] preorder, int[] inorder) {
-        if(preStart > preorder.length - 1 || inStart > inEnd) return null;
-        TreeNode root = new TreeNode(preorder[preStart]);
-        int inIndex = 0; // index of current root in inorder array
-        for(int i = inStart; i <= inEnd; i++) {
-            if(inorder[i] == root.val) {
-                inIndex = i;
-            }
-        }
-        root.left = helper(preStart + 1, inStart, inIndex - 1, preorder, inorder);
-        root.right = helper(preStart + inIndex - inStart + 1, inIndex + 1, inEnd, preorder, inorder);
-        return root;
-    }
-}
-
-72. Search in Rotated Array
-/**
- * Suppose a sorted array is rotated at some pivot unknown to you beforehand.
- * (i.e., 0 1 2 4 5 6 7 might become 4 5 6 7 0 1 2).
- * You are given a target value to search. If found in the array return its index, otherwise return -1.
- * You may assume no duplicate exists in the array.
- */
- 
-public class Solution {
-    public int search(int[] A, int target) {
-        if (A == null || A.length == 0) {
-            return -1;
-        }
-
-        int start = 0;
-        int end = A.length - 1;
-        int mid;
-        
-        while (start + 1 < end) {
-            mid = start + (end - start) / 2;
-            if (A[mid] == target) {
-                return mid;
-            }
-            if (A[start] < A[mid]) {
-                // situation 1, red line, the upper body is already sorted.
-                if (A[start] <= target && target <= A[mid]) {
-                    end = mid;
-                } else {
-                    start = mid;
-                }
-            } else {
-                // situation 2, green line, the lower body is already sorted.
-                if (A[mid] <= target && target <= A[end]) {
-                    start = mid;
-                } else {
-                    end = mid;
-                }
-            }
-        } // while
-        
-        if (A[start] == target) {
-            return start;
-        }
-        if (A[end] == target) {
-            return end;
-        }
-        return -1;
-    }
-}
-
-73. N Queens
-/**
- * The n-queens puzzle is the problem of placing n queens on an n×n chessboard such that no two queens attack each other.
- * Given an integer n, return all distinct solutions to the n-queens puzzle.
- * Each solution contains a distinct board configuration of the n-queens' placement, where 'Q' and '.' both indicate a queen and an empty space respectively.
- * For example,
- * There exist two distinct solutions to the 4-queens puzzle:
- * [
- *   [".Q..",  // Solution 1
- *    "...Q",
- *    "Q...",
- *    "..Q."],
- *   
- *   ["..Q.",  // Solution 2
- *    "Q...",
- *    "...Q",
- *    ".Q.."]
- *   ]
- */
- 
-public class Solution {
-    public ArrayList<String[]> solveNQueens(int n) {
-        if (n <= 0)
-            return null;
-        int[] queens = new int[n];
-        return solve(n, queens, 0);
-    }
-
-    public ArrayList<String[]> solve(int n, int[] q, int index) {
-        ArrayList<String[]> rl = new ArrayList<String[]>();
-        if (index == n) {
-            rl.add(new String[n]);
-            return rl;
-        }
-        outer: for (int i = 0; i < n; i++) {
-            for (int k = 0; k < index; k++)
-                if (q[k] == i || Math.abs(q[k] - i) == index - k)
-                    continue outer;
-            q[index] = i;
-            for (String[] x : solve(n, q, index + 1)) {
-                x[index] = "";
-                for (int j = 0; j < n; j++)
-                    x[index] += (j == i) ? "Q" : ".";
-                rl.add(x);
-            }
-        }
-        return rl;
-    }
-}
-
-74. Sliding Window Maximum
-public class Solution {
-    public int[] maxSlidingWindow(int[] nums, int k) {
-        if(nums.length == 0) return new int[]{};
-        int[] ans = new int[nums.length - k + 1];
-        
-        Deque<Integer> deque = new ArrayDeque<Integer>();
-        int i = 0, j = 0;
-        for(int now: nums) {
-            i++;
-            while(!deque.isEmpty() && now > deque.peekLast()) {
-                deque.pollLast();
-            }
-            deque.offer(now);
-            // remove the element which are out of the current window
-            if(i > k && deque.peekFirst() == nums[i - k - 1])  deque.pollFirst();
-            if(i >= k)  ans[j++] = deque.peekFirst();
-        }
-        return ans;
-    }
-}
-
-75. Shorten URL
-
-76. Maximum Subarray
-/**
- * Find the contiguous subarray within an array (containing at least one number) which has the largest sum.
- * For example, given the array [−2,1,−3,4,−1,2,1,−5,4],
- * the contiguous subarray [4,−1,2,1] has the largest sum = 6.
- */
-public class Solution {
-    public int maxSubArray(int[] A) {
-        int res = A[0], sum = 0;
-        for(int i = 0; i < A.length; ++i){
-            sum = Math.max(sum + A[i], A[i]);
-            res = Math.max(res, sum);
-        }
-        return res;
-    }
-}
-
-77. Factorial Tailing Zeroes
-/**
- * Given an integer n, return the number of trailing zeroes in n!.
- * Note: Your solution should be in logarithmic time complexity.
- */
- 
-public class Solution {
-    public int trailingZeroes(int n) {
-        if (n < 0)
-            return -1;
-        int count = 0;
-        for (long i = 5; n / i >= 1; i *= 5) {
-            count += n / i;
-        }
-        return count;
-    }
-}
-
-78. is balanced BST
-/**
- * Given a binary tree, determine if it is height-balanced.
- * For this problem, a height-balanced binary tree is defined as a binary tree in which the depth of the two subtrees of every node never differ by more than 1.
- */
- 
- /**
- * Definition for binary tree
- * public class TreeNode {
- *     int val;
- *     TreeNode left;
- *     TreeNode right;
- *     TreeNode(int x) { val = x; }
- * }
- */
-public class Solution {
-    public boolean isBalanced(TreeNode root) {
-        if(root == null) return true;
-        return isBalanced(root.left) && isBalanced(root.right) && Math.abs(depth(root.left) - depth(root.right)) <= 1;
-    }
-    
-    public int depth(TreeNode root) {
-        if(root == null) return 0;
-        int left = depth(root.left);
-        int right = depth(root.right);
-        return left > right ? left + 1 : right + 1;
-    }
-}
-
-79. Roman to Integer
-/**
- * Given a roman numeral, convert it to an integer.
- * Input is guaranteed to be within the range from 1 to 3999.
- */
-
-public class Solution {
-    public int romanToInt(String s) {
-        HashMap<Character, Integer> dic = new HashMap<Character, Integer>();
-        dic.put('I', 1);
-        dic.put('V', 5);
-        dic.put('X', 10);
-        dic.put('L', 50);
-        dic.put('C', 100);
-        dic.put('D', 500);
-        dic.put('M', 1000);
-        //start from the rightmost one. 
-        int res = dic.get(s.charAt(s.length() - 1));
-        for(int i = s.length() - 2; i >= 0; i--){
-            if(dic.get(s.charAt(i + 1)) <= dic.get(s.charAt(i)))
-                res += dic.get(s.charAt(i));
-            else
-                res -= dic.get(s.charAt(i));
-        }
-        return res;
-    }
-}
 
 
-80. convert sorted array to bst 
 
-/**
- * Given an array where elements are sorted in ascending order, convert it to a height balanced BST.
- */
- 
-/**
- * Definition for binary tree
- * public class TreeNode {
- *     int val;
- *     TreeNode left;
- *     TreeNode right;
- *     TreeNode(int x) { val = x; }
- * }
- */
 
-public class Solution {
-    public TreeNode sortedArrayToBST(int[] num) {
-        return buildTree(num, 0, num.length - 1);
-    }
-    public TreeNode buildTree(int[] num, int start, int end){
-        if(start > end)
-            return null;
-        int mid = start + (end - start) / 2;
-        TreeNode root = new TreeNode(num[mid]);
-        root.left = buildTree(num, start, mid - 1);
-        root.right = buildTree(num, mid + 1, end);
-        return root;
-    }
-}
 
-81. Sort Colors
-/**
- * Given an array with n objects colored red, white or blue, sort them so that objects of the same color are adjacent, with the colors in the order red, white and blue.
- * Here, we will use the integers 0, 1, and 2 to represent the color red, white, and blue respectively.
- * Note:
- * You are not suppose to use the library's sort function for this problem.
- * Follow up: 
- * A rather straight forward solution is a two-pass algorithm using counting sort.
- * First, iterate the array counting number of 0's, 1's, and 2's, then overwrite array with total number of 0's, then 1's and followed by 2's.
- * Could you come up with an one-pass algorithm using only constant space?
- */
- public class Solution {
-    public void sortColors(int[] A) {
-        int red = -1;
-        int white = 0;
-        int blue = A.length;
-        while(white < blue){
-            if(A[white] == 0){
-                // it's red and swap red and white. And count red move forward by 1.
-                red++;
-                int temp = A[white];
-                A[white] = A[red];
-                A[red] = temp;
-                // white move forward as well. 
-                white++;
-            }else if(A[white] == 2){
-                // it's blue and swap blue and white. And count blue move backward by 1.
-                blue--;
-                int temp = A[white];
-                A[white] = A[blue];
-                A[blue] = temp;
-            }else
-                white++;
-        }
-    }
-}
 
-82. Longest Substring without Repeating characters
-public int lengthOfLongestSubstring(String s) {
-    if (s.length()==0) return 0;
-    HashMap<Character, Integer> map = new HashMap<Character, Integer>();
-    int max=0;
-    for (int i=0, j=0; i<s.length(); ++i){
-        if (map.containsKey(s.charAt(i))){
-            j = Math.max(j,map.get(s.charAt(i))+1);
-        }
-        map.put(s.charAt(i),i);
-        max = Math.max(max,i-j+1);
-    }
-    return max;
-}
 
-83. Palindrome Partition
 
